@@ -1,0 +1,65 @@
+# =========================================================
+# LOAD REQUIRED LIBRARIES
+# =========================================================
+library(readxl)
+library(dplyr)
+library(stringr)
+library(openxlsx)
+
+# =========================================================
+# IMPORT EXCEL FILE
+# =========================================================
+file_path <- "D:/Data Path/Final Database/Initial Screened Data.xlsx"
+
+data <- read_excel(file_path)
+
+# =========================================================
+# CHECK COLUMN NAMES
+# =========================================================
+colnames(data)
+
+# =========================================================
+# EXTRACT CORRESPONDING AUTHOR COUNTRY
+# FROM COLUMN "RP"
+# =========================================================
+data <- data %>%
+  mutate(
+    Country = str_extract(RP, "[^,]+$"),
+    Country = str_trim(Country)
+  )
+
+# =========================================================
+# CHECK YEAR COLUMN
+# Replace "PY" if your publication year column
+# has a different name
+# =========================================================
+head(data$PY)
+
+# =========================================================
+# COUNT PUBLICATIONS PER COUNTRY PER YEAR
+# =========================================================
+country_year <- data %>%
+  filter(!is.na(Country),
+         !is.na(PY)) %>%
+  group_by(Country, PY) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(PY, Country)
+
+# =========================================================
+# VIEW RESULT
+# =========================================================
+print(country_year)
+
+# =========================================================
+# SAVE AS EXCEL FILE
+# READY FOR PIVOT TABLE ANALYSIS
+# =========================================================
+output_file <- "D:/Data Path/Final Database/Initial Screened Data.xlsx/Corresponding_Author_Country_by_Year.xlsx"
+
+write.xlsx(country_year, output_file)
+
+# =========================================================
+# COMPLETION MESSAGE
+# =========================================================
+cat("Excel file successfully saved:\n")
+cat(output_file)
